@@ -1,5 +1,3 @@
-import cv from '@techstark/opencv-js';
-
 // --- Constants based on the original Python script ---
 const SCALE = 5; // フレーム抽出の細かさ (original: scale)
 const THRESHOLD = 50; // 二値化の閾値 (original: threshold)
@@ -13,8 +11,72 @@ export interface FrameData {
 
 export interface ProcessResult {
   ratios: FrameData[];
-  // In the future, we can add extracted frames for the viewer here
+  duration: number;
 }
+
+/**
+ * Gets the image data for a single frame at a specific time.
+ * @param videoFile The video file to process.
+ * @param time The time in seconds to seek to.
+ * @returns A promise that resolves with the original and binarized ImageData.
+ */
+export const getFrameForDisplay = async (
+  videoFile: File,
+  time: number
+): Promise<{ original: ImageData; binarized: ImageData }> => {
+  const cv = (window as any).cv;
+  if (typeof cv === 'undefined') {
+    return Promise.reject(new Error('OpenCV.js is not ready.'));
+  }
+
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const videoUrl = URL.createObjectURL(videoFile);
+    video.src = videoUrl;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (!ctx) {
+      return reject(new Error('Canvas contextを取得できませんでした。'));
+    }
+
+    video.onloadedmetadata = async () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      video.currentTime = Math.min(Math.max(0, time), video.duration);
+
+      await new Promise<void>(r => { video.onseeked = () => r(); });
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      const src = cv.imread(canvas);
+      const gray = new cv.Mat();
+      const binary = new cv.Mat();
+
+      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+      cv.threshold(gray, binary, THRESHOLD, 255, cv.THRESH_BINARY);
+
+      // Draw the binarized image back to the canvas to get its ImageData
+      cv.imshow(canvas, binary);
+      const binarizedImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      src.delete();
+      gray.delete();
+      binary.delete();
+      URL.revokeObjectURL(videoUrl);
+
+      resolve({ original: originalImageData, binarized: binarizedImageData });
+    };
+
+    video.onerror = () => {
+      reject(new Error('動画の読み込みに失敗しました。'));
+      URL.revokeObjectURL(videoUrl);
+    };
+  });
+};
 
 /**
  * Processes a video file in the browser to calculate the white pixel ratio per frame.
@@ -26,10 +88,16 @@ export interface ProcessResult {
 export const processVideoInBrowser = async (
   videoFile: File,
   depth: number,
+  scale: number, // New parameter: sampling interval in meters
   onProgress: (progress: number) => void
 ): Promise<ProcessResult> => {
+  // Use window.cv to access the globally loaded OpenCV object
+  const cv = (window as any).cv;
+  if (typeof cv === 'undefined') {
+    return Promise.reject(new Error('OpenCV.js is not ready.'));
+  }
+
   return new Promise((resolve, reject) => {
-    // 1. Create a video element to play the video in memory
     const video = document.createElement('video');
     const videoUrl = URL.createObjectURL(videoFile);
     video.src = videoUrl;
@@ -38,54 +106,46 @@ export const processVideoInBrowser = async (
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
     if (!ctx) {
-      return reject(new Error('Could not get canvas context'));
+      return reject(new Error('Canvas contextを取得できませんでした。'));
     }
 
     const results: FrameData[] = [];
 
     video.onloadedmetadata = async () => {
-      // Set canvas dimensions to match video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // Calculate interval based on the Python script's logic
-      // We need to estimate total frames. A common (but not always accurate) FPS is 30.
-      const estimatedFps = 30;
-      const totalFrames = video.duration * estimatedFps;
-      const frameInterval = Math.max(1, Math.floor(totalFrames / (depth * SCALE)));
-      const timeInterval = frameInterval / estimatedFps;
+      // New calculation logic based on `scale` as sampling interval
+      const totalSamples = depth / scale;
+      if (totalSamples <= 0) {
+        return reject(new Error('深度とスケールの設定では、サンプル数が0以下になります。'));
+      }
+      const timeInterval = video.duration / totalSamples;
 
       if (timeInterval <= 0) {
-        return reject(new Error('Invalid depth or video length, processing interval is zero.'));
+        return reject(new Error('動画の長さが0か、設定値が不正です。'));
       }
 
       onProgress(0);
 
-      // 2. Loop through the video at the calculated time interval
       for (let currentTime = 0; currentTime < video.duration; currentTime += timeInterval) {
         video.currentTime = currentTime;
-
-        // Wait for the video to seek to the correct frame
         await new Promise<void>(r => { video.onseeked = () => r(); });
 
-        // 3. Draw the frame to the canvas
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const src = cv.imread(canvas);
         const gray = new cv.Mat();
         const binary = new cv.Mat();
 
-        // 4. Process the frame using OpenCV.js
         cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
         cv.threshold(gray, binary, THRESHOLD, 255, cv.THRESH_BINARY);
 
-        // 5. Calculate white pixel ratio
         const totalPixels = binary.rows * binary.cols;
         const whitePixels = cv.countNonZero(binary) + TRIM;
         const whiteRatio = totalPixels > 0 ? whitePixels / totalPixels : 0;
 
         results.push({ ratio: whiteRatio, depth: (currentTime / video.duration) * depth });
 
-        // Clean up memory
         src.delete();
         gray.delete();
         binary.delete();
@@ -94,12 +154,12 @@ export const processVideoInBrowser = async (
       }
 
       onProgress(1);
-      URL.revokeObjectURL(videoUrl); // Clean up the object URL
-      resolve({ ratios: results });
+      URL.revokeObjectURL(videoUrl);
+      resolve({ ratios: results, duration: video.duration });
     };
 
     video.onerror = () => {
-      reject(new Error('Failed to load video.'));
+      reject(new Error('動画の読み込みに失敗しました。'));
       URL.revokeObjectURL(videoUrl);
     };
   });

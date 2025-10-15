@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { CSVLink } from 'react-csv';
-import cv from '@techstark/opencv-js';
 import { processVideoInBrowser } from './cv';
 import type { FrameData } from './cv';
 import './App.css';
@@ -9,18 +8,37 @@ import './App.css';
 function App() {
   const [isCvReady, setIsCvReady] = useState<boolean>(false);
   const [depth, setDepth] = useState<number>(100);
+  const [scale, setScale] = useState<number>(1); // Default to every 1 meter
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>('OpenCVを初期化しています...');
   const [progress, setProgress] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [results, setResults] = useState<FrameData[]>([]);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+
+  // Frame Viewer State
+  const [viewerMode, setViewerMode] = useState<string>('depth');
+  const [viewerValue, setViewerValue] = useState<number>(0);
 
   useEffect(() => {
-    // OpenCV.js has an onRuntimeInitialized callback that fires when it's ready.
-    cv.onRuntimeInitialized = () => {
-      setIsCvReady(true);
-      setStatus('動画ファイルを選択してください...');
+    const checkCv = () => {
+      // Use a more specific type assertion to avoid general `any`
+      const cv = (window as { cv?: any }).cv;
+      if (cv && cv.imread) {
+        setIsCvReady(true);
+        setStatus('動画ファイルを選択してください...');
+      } else {
+        if (cv) {
+          cv.onRuntimeInitialized = () => {
+            setIsCvReady(true);
+            setStatus('動画ファイルを選択してください...');
+          };
+        } else {
+          setTimeout(checkCv, 100);
+        }
+      }
     };
+    checkCv();
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,11 +62,13 @@ function App() {
     setProgress(0);
 
     try {
-      const result = await processVideoInBrowser(videoFile, depth, (p) => {
+      // Pass the new `scale` variable to the processing function
+      const result = await processVideoInBrowser(videoFile, depth, scale, (p) => {
         setProgress(p);
         setStatus(`処理中... ${(p * 100).toFixed(0)}%`);
       });
       setResults(result.ratios);
+      setVideoDuration(result.duration); // Store video duration
       setStatus('処理が完了しました！');
     } catch (error) {
       const message = error instanceof Error ? error.message : '不明なエラーが発生しました。';
@@ -56,6 +76,57 @@ function App() {
     } finally {
       setIsProcessing(false);
       setProgress(0);
+    }
+  };
+
+  const handleShowImage = async () => {
+    if (!videoFile) return;
+
+    let targetTime = 0;
+    const totalSamples = depth / scale;
+
+    switch (viewerMode) {
+      case 'depth':
+        targetTime = (viewerValue / depth) * videoDuration;
+        break;
+      case 'frame':
+        targetTime = (viewerValue / totalSamples) * videoDuration;
+        break;
+      case 'seconds':
+        targetTime = viewerValue;
+        break;
+      default:
+        return;
+    }
+
+    if (targetTime < 0 || targetTime > videoDuration) {
+      setStatus(`エラー: 指定された値が動画の範囲外です (0 - ${videoDuration.toFixed(2)}s)`);
+      return;
+    }
+
+    setStatus('フレームを生成中...');
+    try {
+      const frames = await getFrameForDisplay(videoFile, targetTime);
+      
+      const originalCanvas = document.getElementById('original-canvas') as HTMLCanvasElement;
+      const binaryCanvas = document.getElementById('binary-canvas') as HTMLCanvasElement;
+
+      if (originalCanvas && binaryCanvas) {
+        originalCanvas.width = frames.original.width;
+        originalCanvas.height = frames.original.height;
+        binaryCanvas.width = frames.binarized.width;
+        binaryCanvas.height = frames.binarized.height;
+
+        const originalCtx = originalCanvas.getContext('2d');
+        const binaryCtx = binaryCanvas.getContext('2d');
+
+        originalCtx?.putImageData(frames.original, 0, 0);
+        binaryCtx?.putImageData(frames.binarized, 0, 0);
+        setStatus('フレームを表示しました。');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '不明なエラーが発生しました。';
+      setStatus(`エラー: ${message}`);
     }
   };
 
@@ -77,7 +148,7 @@ function App() {
             />
           </div>
           <div className="control-item">
-            <label htmlFor="depth-input">2. 深度(m)を入力</label>
+            <label htmlFor="depth-input">2. 総深度(m)を入力</label>
             <input
               id="depth-input"
               type="number"
@@ -88,8 +159,20 @@ function App() {
             />
           </div>
           <div className="control-item">
+            <label htmlFor="scale-input">3. サンプリング間隔(m)を入力</label>
+            <input
+              id="scale-input"
+              type="number"
+              value={scale}
+              onChange={(e) => setScale(parseFloat(e.target.value))}
+              min="0.1"
+              step="0.1"
+              disabled={!isCvReady || isProcessing}
+            />
+          </div>
+          <div className="control-item">
             <button onClick={handleProcessVideo} disabled={!isCvReady || !videoFile || isProcessing}>
-              {isProcessing ? '処理中...' : '3. 動画を処理'}
+              {isProcessing ? '処理中...' : '4. 動画を処理'}
             </button>
           </div>
         </div>
@@ -131,6 +214,48 @@ function App() {
               >
                 CSVをダウンロード
               </CSVLink>
+            </div>
+          )}\n
+          {/* --- Frame Viewer --- */}
+          {results.length > 0 && (
+            <div className="frame-viewer-container">
+              <h2>フレームビューア</h2>
+              <div className="viewer-controls">
+                <div className="control-item">
+                  <label>表示方法を選択</label>
+                  <div className="radio-group">
+                    <label>
+                      <input type="radio" name="viewer-mode" value="depth" checked={viewerMode === 'depth'} onChange={(e) => setViewerMode(e.target.value)} />
+                      深度 (m)
+                    </label>
+                    <label>
+                      <input type="radio" name="viewer-mode" value="frame" checked={viewerMode === 'frame'} onChange={(e) => setViewerMode(e.target.value)} />
+                      フレーム番号
+                    </label>
+                    <label>
+                      <input type="radio" name="viewer-mode" value="seconds" checked={viewerMode === 'seconds'} onChange={(e) => setViewerMode(e.target.value)} />
+                      秒数 (s)
+                    </label>
+                  </div>
+                </div>
+                <div className="control-item">
+                  <label htmlFor="viewer-input">値を入力</label>
+                  <input id="viewer-input" type="number" min="0" value={viewerValue} onChange={(e) => setViewerValue(parseFloat(e.target.value))} />
+                </div>
+                <div className="control-item">
+                  <button onClick={handleShowImage}>画像を表示</button>
+                </div>
+              </div>
+              <div className="viewer-canvases">
+                <div>
+                  <h3>元画像</h3>
+                  <canvas id="original-canvas" />
+                </div>
+                <div>
+                  <h3>二値化画像</h3>
+                  <canvas id="binary-canvas" />
+                </div>
+              </div>
             </div>
           )}
         </div>
