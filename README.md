@@ -1,74 +1,54 @@
-# React + TypeScript + Vite
+# 海中浮遊物カウンター (Web版)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+これは、動画ファイルから海中の浮遊物の量を概算するためのWebアプリケーションです。Python製の[オリジナル版](https://github.com/kuronos357/marine-object-counter)を、クライアントサイドで動作するWebアプリとしてReactとTypeScriptを用いて再実装したものです。
 
-Currently, two official plugins are available:
+サーバーへの動画アップロードが不要なため、大きな動画ファイルでもプライバシーと速度を保ちながら処理できます。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 主な機能
 
-## React Compiler
+- ブラウザ完結型の動画処理
+- 深度に応じたフレームの自動抽出と解析
+- 白ピクセル率（浮遊物の概算値）の計算
+- 処理結果のグラフ表示
+- 解析データのCSV形式でのダウンロード
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 技術スタック
 
-## Expanding the ESLint configuration
+- [React](https://react.dev/) - UIライブラリ
+- [TypeScript](https://www.typescriptlang.org/) - JavaScriptへの型付け
+- [Vite](https://vitejs.dev/) - 開発サーバーとビルドツール
+- [OpenCV.js](https://docs.opencv.org/4.x/d5/d10/tutorial_js_root.html) - 画像処理
+- [Recharts](https://recharts.org/) - グラフ描画
+- [React-CSV](https://github.com/react-csv/react-csv) - CSVダウンロード
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## セットアップと実行方法
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 1. 前提条件
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- [Node.js](https://nodejs.org/) (v18以降を推奨) がインストールされていること。
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. 依存関係のインストール
+
+プロジェクトのルートディレクトリで、以下のコマンドを実行します。
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 3. 開発サーバーの起動
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+依存関係のインストール後、以下のコマンドで開発サーバーを起動します。
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
-# marine-object-counter-web
+
+ターミナルに表示されたローカルURL（例: `http://localhost:5173`）をブラウザで開くと、アプリケーションにアクセスできます。
+
+## 使い方
+
+1.  **動画ファイルを選択**: 「動画ファイルを選択」ボタンを押し、解析したい動画ファイルを選びます。
+2.  **深度(m)を入力**: 解析の基準となる深度を入力します。
+3.  **動画を処理**: 「動画を処理」ボタンを押すと、ブラウザ上で解析が始まります。処理中は進捗が表示されます。
+4.  **結果の確認**: 処理が完了すると、深度ごとの白ピクセル率を示したグラフが表示されます。
+5.  **CSVをダウンロード**: グラフの下にある「CSVをダウンロード」リンクをクリックすると、解析データをCSVファイルとして保存できます。
