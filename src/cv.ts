@@ -9,10 +9,6 @@ interface Cv {
   THRESH_BINARY: number;
 }
 
-// --- Constants based on the original Python script ---
-const THRESHOLD = 50; // 二値化の閾値 (original: threshold)
-const TRIM = 0; // トリムの値 (original: trim)
-
 // --- Type definitions ---
 export interface FrameData {
   ratio: number;
@@ -29,6 +25,8 @@ export interface ProcessResult {
  * @param videoFile The video file to process.
  * @param depth The total depth, used to calculate frame intervals.
  * @param scale The sampling interval in meters.
+ * @param threshold The binarization threshold.
+ * @param trim The value to add to the white pixel count.
  * @param onProgress A callback function to report progress (0 to 1).
  * @returns A promise that resolves with the processing results.
  */
@@ -36,6 +34,8 @@ export const processVideoInBrowser = async (
   videoFile: File,
   depth: number,
   scale: number,
+  threshold: number,
+  trim: number,
   onProgress: (progress: number) => void
 ): Promise<ProcessResult> => {
   const cv = (window as unknown as { cv: Cv }).cv;
@@ -83,10 +83,10 @@ export const processVideoInBrowser = async (
         const binary = new cv.Mat();
 
         cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-        cv.threshold(gray, binary, THRESHOLD, 255, cv.THRESH_BINARY);
+        cv.threshold(gray, binary, threshold, 255, cv.THRESH_BINARY);
 
         const totalPixels = binary.rows * binary.cols;
-        const whitePixels = cv.countNonZero(binary) + TRIM;
+        const whitePixels = cv.countNonZero(binary) + trim;
         const whiteRatio = totalPixels > 0 ? whitePixels / totalPixels : 0;
 
         results.push({ ratio: whiteRatio, depth: (currentTime / video.duration) * depth });
@@ -114,11 +114,13 @@ export const processVideoInBrowser = async (
  * Gets the image data for a single frame at a specific time.
  * @param videoFile The video file to process.
  * @param time The time in seconds to seek to.
+ * @param threshold The binarization threshold.
  * @returns A promise that resolves with the original and binarized ImageData.
  */
 export const getFrameForDisplay = async (
   videoFile: File,
-  time: number
+  time: number,
+  threshold: number
 ): Promise<{ original: ImageData; binarized: ImageData }> => {
   const cv = (window as unknown as { cv: Cv }).cv;
   if (typeof cv === 'undefined') {
@@ -153,7 +155,7 @@ export const getFrameForDisplay = async (
       const binary = new cv.Mat();
 
       cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-      cv.threshold(gray, binary, THRESHOLD, 255, cv.THRESH_BINARY);
+      cv.threshold(gray, binary, threshold, 255, cv.THRESH_BINARY);
 
       cv.imshow(canvas, binary);
       const binarizedImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
