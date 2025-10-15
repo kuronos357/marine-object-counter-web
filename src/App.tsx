@@ -131,18 +131,18 @@ function App() {
       <main>
         <div className="controls">
           <div className="control-item"><label htmlFor="video-input">1. 動画ファイルを選択</label><input id="video-input" type="file" accept="video/*" onChange={handleFileChange} disabled={!isCvReady || isProcessing}/></div>
+          <div className="control-item"><label htmlFor="depth-input">2. 総深度(m)を入力</label><input id="depth-input" type="number" value={depth} onChange={(e) => setDepth(parseInt(e.target.value, 10))} min="1" disabled={!isCvReady || isProcessing}/></div>
           
           <details className="settings-details">
             <summary>詳細設定</summary>
             <div className="settings-content">
-              <div className="control-item"><label htmlFor="depth-input">総深度(m)</label><input id="depth-input" type="number" value={depth} onChange={(e) => setDepth(parseInt(e.target.value, 10))} min="1" disabled={!isCvReady || isProcessing}/></div>
               <div className="control-item"><label htmlFor="scale-input">サンプリング間隔(m)</label><input id="scale-input" type="number" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} min="0.1" step="0.1" disabled={!isCvReady || isProcessing}/></div>
               <div className="control-item"><label htmlFor="threshold-input">二値化の閾値 (0-255)</label><input id="threshold-input" type="number" value={threshold} onChange={(e) => setThreshold(parseInt(e.target.value, 10))} min="0" max="255" disabled={!isCvReady || isProcessing}/></div>
               <div className="control-item"><label htmlFor="trim-input">トリム値</label><input id="trim-input" type="number" value={trim} onChange={(e) => setTrim(parseInt(e.target.value, 10))} disabled={!isCvReady || isProcessing}/></div>
             </div>
           </details>
 
-          <div className="control-item"><button onClick={handleProcessVideo} disabled={!isCvReady || !videoFile || isProcessing}>{isProcessing ? '処理中...' : '2. 動画を処理'}</button></div>
+          <div className="control-item"><button onClick={handleProcessVideo} disabled={!isCvReady || !videoFile || isProcessing}>{isProcessing ? '処理中...' : '3. 動画を処理'}</button></div>
         </div>
         <div className="status"><p>ステータス: {status}</p>{isProcessing && (<progress value={progress} max="1" style={{ width: '100%', maxWidth: '400px' }}></progress>)}</div>
         <div className="results">
