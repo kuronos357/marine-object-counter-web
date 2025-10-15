@@ -9,7 +9,7 @@ interface Cv {
   THRESH_BINARY: number;
 }
 
-// --- Type definitions ---
+// --- 型定義 ---
 export interface FrameData {
   ratio: number;
   depth: number;
@@ -21,14 +21,14 @@ export interface ProcessResult {
 }
 
 /**
- * Processes a video file in the browser to calculate the white pixel ratio per frame.
- * @param videoFile The video file to process.
- * @param depth The total depth, used to calculate frame intervals.
- * @param scale The sampling interval in meters.
- * @param threshold The binarization threshold.
- * @param trim The value to add to the white pixel count.
- * @param onProgress A callback function to report progress (0 to 1).
- * @returns A promise that resolves with the processing results.
+ * ブラウザ上で動画ファイルを処理し、フレームごとの白ピクセル率を計算します。
+ * @param videoFile 処理対象の動画ファイル
+ * @param depth 総深度。フレームの間隔計算に使用されます。
+ * @param scale サンプリング間隔（メートル）
+ * @param threshold 二値化の閾値
+ * @param trim 白ピクセル数に加算する値
+ * @param onProgress 進捗を報告するためのコールバック関数 (0 to 1)
+ * @returns 処理結果を含むPromise
  */
 export const processVideoInBrowser = async (
   videoFile: File,
@@ -40,7 +40,7 @@ export const processVideoInBrowser = async (
 ): Promise<ProcessResult> => {
   const cv = (window as unknown as { cv: Cv }).cv;
   if (typeof cv === 'undefined') {
-    return Promise.reject(new Error('OpenCV.js is not ready.'));
+    return Promise.reject(new Error('OpenCV.jsの準備ができていません。'));
   }
 
   return new Promise((resolve, reject) => {
@@ -111,11 +111,11 @@ export const processVideoInBrowser = async (
 };
 
 /**
- * Gets the image data for a single frame at a specific time.
- * @param videoFile The video file to process.
- * @param time The time in seconds to seek to.
- * @param threshold The binarization threshold.
- * @returns A promise that resolves with the original and binarized ImageData.
+ * 指定された時間の単一フレームの画像データを取得します。
+ * @param videoFile 処理対象の動画ファイル
+ * @param time シークする時間（秒）
+ * @param threshold 二値化の閾値
+ * @returns 元画像と二値化画像のImageDataを含むPromise
  */
 export const getFrameForDisplay = async (
   videoFile: File,
@@ -124,7 +124,7 @@ export const getFrameForDisplay = async (
 ): Promise<{ original: ImageData; binarized: ImageData }> => {
   const cv = (window as unknown as { cv: Cv }).cv;
   if (typeof cv === 'undefined') {
-    return Promise.reject(new Error('OpenCV.js is not ready.'));
+    return Promise.reject(new Error('OpenCV.jsの準備ができていません。'));
   }
 
   return new Promise((resolve, reject) => {

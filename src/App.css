@@ -64,6 +64,28 @@ main {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.2s;
+  width: 100%;
+}
+
+.settings-details {
+  width: 100%;
+  max-width: 400px;
+  background-color: #4a515e;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+}
+
+.settings-details summary {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.settings-content {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .control-item button:disabled {

@@ -5,7 +5,7 @@ import { processVideoInBrowser, getFrameForDisplay } from './cv';
 import type { FrameData } from './cv';
 import './App.css';
 
-// Minimal interface for the parts of OpenCV we use
+// 使用するOpenCVの機能に関する最小限のインターフェース
 interface Cv {
   onRuntimeInitialized?: () => void;
   imread?: (canvas: HTMLCanvasElement) => any; // Mat
@@ -13,10 +13,6 @@ interface Cv {
 
 function App() {
   const [isCvReady, setIsCvReady] = useState<boolean>(false);
-  const [depth, setDepth] = useState<number>(100);
-  const [scale, setScale] = useState<number>(5); // Default to 5 meters
-  const [threshold, setThreshold] = useState<number>(50);
-  const [trim, setTrim] = useState<number>(0);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>('OpenCVを初期化しています...');
   const [progress, setProgress] = useState<number>(0);
@@ -24,7 +20,13 @@ function App() {
   const [results, setResults] = useState<FrameData[]>([]);
   const [videoDuration, setVideoDuration] = useState<number>(0);
 
-  // Frame Viewer State
+  // 設定値のState
+  const [depth, setDepth] = useState<number>(100);
+  const [scale, setScale] = useState<number>(5);
+  const [threshold, setThreshold] = useState<number>(50);
+  const [trim, setTrim] = useState<number>(0);
+
+  // フレームビューアの状態
   const [viewerMode, setViewerMode] = useState<string>('depth');
   const [viewerValue, setViewerValue] = useState<number>(0);
 
@@ -129,11 +131,18 @@ function App() {
       <main>
         <div className="controls">
           <div className="control-item"><label htmlFor="video-input">1. 動画ファイルを選択</label><input id="video-input" type="file" accept="video/*" onChange={handleFileChange} disabled={!isCvReady || isProcessing}/></div>
-          <div className="control-item"><label htmlFor="depth-input">2. 総深度(m)を入力</label><input id="depth-input" type="number" value={depth} onChange={(e) => setDepth(parseInt(e.target.value, 10))} min="1" disabled={!isCvReady || isProcessing}/></div>
-          <div className="control-item"><label htmlFor="scale-input">3. サンプリング間隔(m)を入力</label><input id="scale-input" type="number" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} min="0.1" step="0.1" disabled={!isCvReady || isProcessing}/></div>
-          <div className="control-item"><label htmlFor="threshold-input">4. 閾値 (0-255)</label><input id="threshold-input" type="number" value={threshold} onChange={(e) => setThreshold(parseInt(e.target.value, 10))} min="0" max="255" disabled={!isCvReady || isProcessing}/></div>
-          <div className="control-item"><label htmlFor="trim-input">5. トリム値</label><input id="trim-input" type="number" value={trim} onChange={(e) => setTrim(parseInt(e.target.value, 10))} disabled={!isCvReady || isProcessing}/></div>
-          <div className="control-item"><button onClick={handleProcessVideo} disabled={!isCvReady || !videoFile || isProcessing}>{isProcessing ? '処理中...' : '6. 動画を処理'}</button></div>
+          
+          <details className="settings-details">
+            <summary>詳細設定</summary>
+            <div className="settings-content">
+              <div className="control-item"><label htmlFor="depth-input">総深度(m)</label><input id="depth-input" type="number" value={depth} onChange={(e) => setDepth(parseInt(e.target.value, 10))} min="1" disabled={!isCvReady || isProcessing}/></div>
+              <div className="control-item"><label htmlFor="scale-input">サンプリング間隔(m)</label><input id="scale-input" type="number" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} min="0.1" step="0.1" disabled={!isCvReady || isProcessing}/></div>
+              <div className="control-item"><label htmlFor="threshold-input">二値化の閾値 (0-255)</label><input id="threshold-input" type="number" value={threshold} onChange={(e) => setThreshold(parseInt(e.target.value, 10))} min="0" max="255" disabled={!isCvReady || isProcessing}/></div>
+              <div className="control-item"><label htmlFor="trim-input">トリム値</label><input id="trim-input" type="number" value={trim} onChange={(e) => setTrim(parseInt(e.target.value, 10))} disabled={!isCvReady || isProcessing}/></div>
+            </div>
+          </details>
+
+          <div className="control-item"><button onClick={handleProcessVideo} disabled={!isCvReady || !videoFile || isProcessing}>{isProcessing ? '処理中...' : '2. 動画を処理'}</button></div>
         </div>
         <div className="status"><p>ステータス: {status}</p>{isProcessing && (<progress value={progress} max="1" style={{ width: '100%', maxWidth: '400px' }}></progress>)}</div>
         <div className="results">
