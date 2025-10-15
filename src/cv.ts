@@ -38,7 +38,7 @@ export const processVideoInBrowser = async (
   scale: number,
   onProgress: (progress: number) => void
 ): Promise<ProcessResult> => {
-  const cv = (window as { cv: Cv }).cv;
+  const cv = (window as unknown as { cv: Cv }).cv;
   if (typeof cv === 'undefined') {
     return Promise.reject(new Error('OpenCV.js is not ready.'));
   }
@@ -120,7 +120,7 @@ export const getFrameForDisplay = async (
   videoFile: File,
   time: number
 ): Promise<{ original: ImageData; binarized: ImageData }> => {
-  const cv = (window as { cv: Cv }).cv;
+  const cv = (window as unknown as { cv: Cv }).cv;
   if (typeof cv === 'undefined') {
     return Promise.reject(new Error('OpenCV.js is not ready.'));
   }

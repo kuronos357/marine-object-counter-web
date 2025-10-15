@@ -28,7 +28,7 @@ function App() {
 
   useEffect(() => {
     const checkCv = () => {
-      const cv = (window as { cv?: Cv }).cv;
+      const cv = (window as unknown as { cv?: Cv }).cv;
       if (cv && cv.imread) {
         setIsCvReady(true);
         setStatus('動画ファイルを選択してください...');
