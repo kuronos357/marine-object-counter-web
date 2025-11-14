@@ -5,6 +5,7 @@
 サーバーへの動画アップロードが不要なため、大きな動画ファイルでもプライバシーと速度を保ちながら処理できます。
 
 [リンク](https://marine-object-counter-web.vercel.app/)
+[現行品](https://kuronos357.github.io/marine-object-counter-web/)
 
 ## 主な機能
 
