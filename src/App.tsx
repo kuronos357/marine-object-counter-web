@@ -128,6 +128,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header"><h1>海中浮遊物カウンター (vercel・Web旧版)</h1></header>
+      [新版はこちら](https://kuronos357.github.io/marine-object-counter-web/)
+
       <main>
         <div className="controls">
           <div className="control-item"><label htmlFor="video-input">1. 動画ファイルを選択</label><input id="video-input" type="file" accept="video/*" onChange={handleFileChange} disabled={!isCvReady || isProcessing}/></div>
