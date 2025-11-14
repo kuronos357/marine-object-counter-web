@@ -3,6 +3,7 @@
 これは、動画ファイルから海中の浮遊物の量を概算するためのWebアプリケーションです。Python製の[オリジナル版](https://github.com/kuronos357/marine-object-counter)を、クライアントサイドで動作するWebアプリとしてReactとTypeScriptを用いて再実装したものです。
 
 サーバーへの動画アップロードが不要なため、大きな動画ファイルでもプライバシーと速度を保ちながら処理できます。
+
 [リンク](https://marine-object-counter-web.vercel.app/)
 ## 主な機能
 
