@@ -150,6 +150,12 @@ function App() {
           {results.length > 0 && (<div className="frame-viewer-container"><h2>フレームビューア</h2><div className="viewer-controls"><div className="control-item"><label>表示方法を選択</label><div className="radio-group"><label><input type="radio" name="viewer-mode" value="depth" checked={viewerMode === 'depth'} onChange={(e) => setViewerMode(e.target.value)} />深度 (m)</label><label><input type="radio" name="viewer-mode" value="frame" checked={viewerMode === 'frame'} onChange={(e) => setViewerMode(e.target.value)} />フレーム番号</label><label><input type="radio" name="viewer-mode" value="seconds" checked={viewerMode === 'seconds'} onChange={(e) => setViewerMode(e.target.value)} />秒数 (s)</label></div></div><div className="control-item"><label htmlFor="viewer-input">値を入力</label><input id="viewer-input" type="number" min="0" value={viewerValue} onChange={(e) => setViewerValue(parseFloat(e.target.value))} /></div><div className="control-item"><button onClick={handleShowImage}>画像を表示</button></div></div><div className="viewer-canvases"><div><h3>元画像</h3><canvas id="original-canvas" /></div><div><h3>二値化画像</h3><canvas id="binary-canvas" /></div></div></div>)}
         </div>
       </main>
+      <footer className="App-footer">
+        <p>
+          Developed by <a href="https://github.com/kuronos357" target="_blank" rel="noopener noreferrer">kuronos357</a>.
+          {' '}The original Python version is available <a href="https://github.com/kuronos357/marine-object-counter" target="_blank" rel="noopener noreferrer">here</a>.
+        </p>
+      </footer>
     </div>
   );
 }

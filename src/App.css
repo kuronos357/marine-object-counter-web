@@ -225,3 +225,14 @@ main {
   border-radius: 4px;
 
 }
+
+.App-footer {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #1f2229;
+  font-size: 0.9rem;
+}
+
+.App-footer a {
+  color: #61dafb;
+}
