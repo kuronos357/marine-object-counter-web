@@ -128,7 +128,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header"><h1>海中浮遊物カウンター (vercel・Web旧版)</h1></header>
-      [新版はこちら](https://kuronos357.github.io/marine-object-counter-web/)
+      <p><a href="https://kuronos357.github.io/marine-object-counter-web/" target="_blank" rel="noopener noreferrer">新版はこちら</a></p>
 
       <main>
         <div className="controls">
