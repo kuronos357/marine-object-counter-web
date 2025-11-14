@@ -152,8 +152,9 @@ function App() {
       </main>
       <footer className="App-footer">
         <p>
-          Developed by <a href="https://github.com/kuronos357" target="_blank" rel="noopener noreferrer">kuronos357</a>.
-          {' '}The original Python version is available <a href="https://github.com/kuronos357/marine-object-counter" target="_blank" rel="noopener noreferrer">here</a>.
+          作成： <a href="https://github.com/kuronos357" target="_blank" rel="noopener noreferrer">kuronos357/奥平和哲</a>.
+          {``}このリポジトリは<a href="https://github.com/kuronos357/marine-object-counter-web" target="_blank" rel="noopener noreferrer">こちら</a>です。
+          {' '}元のPython版は<a href="https://github.com/kuronos357/marine-object-counter" target="_blank" rel="noopener noreferrer">こちら</a>で利用可能です。
         </p>
       </footer>
     </div>
