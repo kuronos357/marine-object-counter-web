@@ -155,7 +155,7 @@ function App() {
           作成： <a href="https://github.com/kuronos357" target="_blank" rel="noopener noreferrer">kuronos357</a>/奥平和哲<br />
           このコードのリポジトリは<a href="https://github.com/kuronos357/marine-object-counter-web" target="_blank" rel="noopener noreferrer">ここ</a>で公開しています。
           {' '}元のPython版は<a href="https://github.com/kuronos357/marine-object-counter" target="_blank" rel="noopener noreferrer">ここ</a>で公開しています。
-          {` `}旧版はまだ<a href="https://marine-object-counter-web.vercel.app/" target="_blank" rel="noopener noreferrer">ここ</a>で公開しています。 但し気まぐれで消えます。
+          旧版はまだ<a href="https://marine-object-counter-web.vercel.app/" target="_blank" rel="noopener noreferrer">ここ</a>で公開しています。 但し気まぐれで消えます。
         </p>
       </footer>
     </div>
