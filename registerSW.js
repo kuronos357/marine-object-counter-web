@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/marine-object-counter-web/sw.js', { scope: '/marine-object-counter-web/' })})}
