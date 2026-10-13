@@ -1,12 +1,20 @@
-interface Cv {
-  imread(canvas: HTMLCanvasElement): any; // Mat
-  cvtColor(src: any, dst: any, code: number, dstCn?: number): void;
-  threshold(src: any, dst: any, thresh: number, maxval: number, type: number): void;
-  countNonZero(src: any): number;
-  imshow(canvas: HTMLCanvasElement, mat: any): void;
-  Mat: new () => any;
+export interface Mat {
+  rows: number;
+  cols: number;
+  delete(): void;
+}
+
+export interface Cv {
+  imread(canvas: HTMLCanvasElement): Mat;
+  cvtColor(src: Mat, dst: Mat, code: number, dstCn?: number): void;
+  threshold(src: Mat, dst: Mat, thresh: number, maxval: number, type: number): void;
+  countNonZero(src: Mat): number;
+  imshow(canvas: HTMLCanvasElement, mat: Mat): void;
+  Mat: new () => Mat;
   COLOR_RGBA2GRAY: number;
   THRESH_BINARY: number;
+  onRuntimeInitialized?: () => void;
+  then?: (resolve: (cv: Cv) => void) => Promise<Cv>;
 }
 
 // --- 型定義 ---

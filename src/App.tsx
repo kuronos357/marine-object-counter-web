@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { CSVLink } from 'react-csv';
 import { processVideoInBrowser, getFrameForDisplay } from './cv';
-import type { FrameData } from './cv';
+import type { FrameData, Cv } from './cv';
 import { APP_VERSION } from './version';
 import './App.css';
+
+interface GlobalWithCv {
+  cv?: Cv | Promise<Cv>;
+}
 
 function App() {
   const [isCvReady, setIsCvReady] = useState<boolean>(false);
@@ -31,19 +35,19 @@ function App() {
     const maxAttempts = 300; // 最大30秒 (100ms * 300)
 
     const checkCv = () => {
-      const globalWindow = window as unknown as { cv?: any };
+      const globalWindow = window as unknown as GlobalWithCv;
       const cv = globalWindow.cv;
 
       // 1. すでに実体オブジェクトとして初期化完了している場合
-      if (cv && typeof cv.imread === 'function') {
+      if (cv && 'imread' in cv && typeof cv.imread === 'function') {
         setIsCvReady(true);
         setStatus('動画ファイルを選択してください...');
         return;
       }
 
       // 2. cv が Promise の場合（@techstark/opencv-js の仕様）
-      if (cv && typeof cv.then === 'function') {
-        cv.then((resolvedCv: any) => {
+      if (cv && 'then' in cv && typeof cv.then === 'function') {
+        cv.then((resolvedCv: Cv) => {
           globalWindow.cv = resolvedCv;
           setIsCvReady(true);
           setStatus('動画ファイルを選択してください...');
@@ -54,7 +58,7 @@ function App() {
       }
 
       // 3. onRuntimeInitialized コールバック待機の場合
-      if (cv && typeof cv.onRuntimeInitialized !== 'undefined') {
+      if (cv && 'onRuntimeInitialized' in cv && typeof cv.onRuntimeInitialized !== 'undefined') {
         const prevCallback = cv.onRuntimeInitialized;
         cv.onRuntimeInitialized = () => {
           if (typeof prevCallback === 'function') prevCallback();
@@ -162,7 +166,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>
-          <img src={`${import.meta.env.BASE_URL}favicon.ico`} alt="ロゴ" className="app-logo" />
+          <img src={`${import.meta.env.BASE_URL}favicon.ico?v=1.1.0`} alt="ロゴ" className="app-logo" />
           海中浮遊物カウンター (Web版)
           <span className="version-tag">v{APP_VERSION}</span>
         </h1>
