@@ -3,14 +3,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { CSVLink } from 'react-csv';
 import { processVideoInBrowser, getFrameForDisplay } from './cv';
 import type { FrameData } from './cv';
+import { APP_VERSION } from './version';
 import './App.css';
-
-// 使用するOpenCVの機能に関する最小限のインターフェース
-interface Cv {
-  onRuntimeInitialized?: () => void;
-  imread?: (canvas: HTMLCanvasElement) => any; // Mat
-  then?: (resolve: () => void) => Promise<unknown>;
-}
 
 function App() {
   const [isCvReady, setIsCvReady] = useState<boolean>(false);
@@ -34,18 +28,23 @@ function App() {
   useEffect(() => {
     let timeoutId: number;
     let attempts = 0;
-    const maxAttempts = 200; // 最大20秒 (100ms * 200)
+    const maxAttempts = 300; // 最大30秒 (100ms * 300)
 
     const checkCv = () => {
-      const cv = (window as unknown as { cv?: Cv }).cv;
-      if (cv && cv.imread) {
+      const globalWindow = window as unknown as { cv?: any };
+      const cv = globalWindow.cv;
+
+      // 1. すでに実体オブジェクトとして初期化完了している場合
+      if (cv && typeof cv.imread === 'function') {
         setIsCvReady(true);
         setStatus('動画ファイルを選択してください...');
         return;
       }
 
+      // 2. cv が Promise の場合（@techstark/opencv-js の仕様）
       if (cv && typeof cv.then === 'function') {
-        cv.then(() => {
+        cv.then((resolvedCv: any) => {
+          globalWindow.cv = resolvedCv;
           setIsCvReady(true);
           setStatus('動画ファイルを選択してください...');
         }).catch((err: unknown) => {
@@ -54,6 +53,7 @@ function App() {
         return;
       }
 
+      // 3. onRuntimeInitialized コールバック待機の場合
       if (cv && typeof cv.onRuntimeInitialized !== 'undefined') {
         const prevCallback = cv.onRuntimeInitialized;
         cv.onRuntimeInitialized = () => {
@@ -64,6 +64,7 @@ function App() {
         return;
       }
 
+      // 4. まだ読み込み中
       attempts++;
       if (attempts >= maxAttempts) {
         setStatus('エラー: OpenCV.jsの読み込みに失敗しました（タイムアウト）。ネットワークまたはCDN制限を確認してください。');
@@ -159,7 +160,12 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header"><h1>海中浮遊物カウンター (Web版)</h1></header>
+      <header className="App-header">
+        <h1>
+          海中浮遊物カウンター (Web版)
+          <span className="version-tag">v{APP_VERSION}</span>
+        </h1>
+      </header>
       <main>
         <div className="controls">
           <div className="control-item"><label htmlFor="video-input">1. 動画ファイルを選択</label><input id="video-input" type="file" accept="video/*" onChange={handleFileChange} disabled={!isCvReady || isProcessing}/></div>
@@ -183,6 +189,9 @@ function App() {
         </div>
       </main>
       <footer className="App-footer">
+        <p className="version-info">
+          バージョン: v{APP_VERSION} (OpenCV.js: {isCvReady ? '準備完了' : '初期化中...'})
+        </p>
         <p>
           作成： <a href="https://github.com/kuronos357" target="_blank" rel="noopener noreferrer">kuronos357</a>/奥平和哲<br />
           このコードのリポジトリは<a href="https://github.com/kuronos357/marine-object-counter-web" target="_blank" rel="noopener noreferrer">ここ</a>で公開しています。

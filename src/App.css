@@ -236,3 +236,22 @@ main {
 .App-footer a {
   color: #61dafb;
 }
+
+.version-tag {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  vertical-align: middle;
+  margin-left: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  background-color: #0284c7;
+  color: #fff;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+}
+
+.version-info {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
