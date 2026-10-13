@@ -9,6 +9,7 @@ import './App.css';
 interface Cv {
   onRuntimeInitialized?: () => void;
   imread?: (canvas: HTMLCanvasElement) => any; // Mat
+  then?: (resolve: () => void) => Promise<unknown>;
 }
 
 function App() {
@@ -31,21 +32,52 @@ function App() {
   const [viewerValue, setViewerValue] = useState<number>(0);
 
   useEffect(() => {
+    let timeoutId: number;
+    let attempts = 0;
+    const maxAttempts = 200; // 最大20秒 (100ms * 200)
+
     const checkCv = () => {
       const cv = (window as unknown as { cv?: Cv }).cv;
       if (cv && cv.imread) {
         setIsCvReady(true);
         setStatus('動画ファイルを選択してください...');
-      } else if (cv) {
+        return;
+      }
+
+      if (cv && typeof cv.then === 'function') {
+        cv.then(() => {
+          setIsCvReady(true);
+          setStatus('動画ファイルを選択してください...');
+        }).catch((err: unknown) => {
+          setStatus(`OpenCVの初期化に失敗しました: ${err}`);
+        });
+        return;
+      }
+
+      if (cv && typeof cv.onRuntimeInitialized !== 'undefined') {
+        const prevCallback = cv.onRuntimeInitialized;
         cv.onRuntimeInitialized = () => {
+          if (typeof prevCallback === 'function') prevCallback();
           setIsCvReady(true);
           setStatus('動画ファイルを選択してください...');
         };
-      } else {
-        setTimeout(checkCv, 100);
+        return;
       }
+
+      attempts++;
+      if (attempts >= maxAttempts) {
+        setStatus('エラー: OpenCV.jsの読み込みに失敗しました（タイムアウト）。ネットワークまたはCDN制限を確認してください。');
+        return;
+      }
+
+      timeoutId = window.setTimeout(checkCv, 100);
     };
+
     checkCv();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
