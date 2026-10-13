@@ -162,6 +162,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>
+          <img src={`${import.meta.env.BASE_URL}favicon.ico`} alt="ロゴ" className="app-logo" />
           海中浮遊物カウンター (Web版)
           <span className="version-tag">v{APP_VERSION}</span>
         </h1>
