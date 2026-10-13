@@ -10,10 +10,15 @@ body {
 }
 
 .App {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   text-align: center;
 }
 
 .App-header {
+  width: 100%;
   background-color: #1f2229;
   padding: 20px;
   color: white;
@@ -21,10 +26,15 @@ body {
 }
 
 main {
+  width: 100%;
+  flex: 1;
   padding: 0 20px;
+  box-sizing: border-box;
 }
 
 .controls {
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,12 +114,15 @@ main {
 }
 
 .results {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
 .chart-container {
+  width: 100%;
+  box-sizing: border-box;
   background-color: #3a404a;
   padding: 2rem;
   border-radius: 8px;
@@ -133,101 +146,69 @@ main {
 }
 
 .frame-viewer-placeholder {
-
+  width: 100%;
+  box-sizing: border-box;
   background-color: #3a404a;
-
   padding: 2rem;
-
   border-radius: 8px;
-
 }
-
-
 
 .frame-viewer-container {
-
+  width: 100%;
+  box-sizing: border-box;
   background-color: #3a404a;
-
   padding: 2rem;
-
   border-radius: 8px;
-
   margin-top: 2rem;
-
 }
-
-
 
 .viewer-controls {
-
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
-
   gap: 1.5rem;
-
   margin-top: 1rem;
-
 }
-
-
 
 .radio-group {
-
   display: flex;
-
   gap: 1rem;
-
 }
-
-
 
 .radio-group label {
-
   display: flex;
-
   align-items: center;
-
   gap: 0.5rem;
-
 }
-
-
 
 .viewer-canvases {
-
   display: flex;
-
   justify-content: center;
-
   gap: 2rem;
-
   margin-top: 2rem;
-
   flex-wrap: wrap;
-
+  width: 100%;
 }
 
-
+.viewer-canvases > div {
+  flex: 1 1 300px;
+  max-width: 100%;
+  min-width: 0;
+}
 
 .viewer-canvases canvas {
-
+  width: 100%;
   max-width: 100%;
-
   height: auto;
-
+  display: block;
   background-color: #282c34;
-
   border: 1px solid #ccc;
-
   border-radius: 4px;
-
 }
 
 .App-footer {
-  margin-top: 2rem;
+  width: 100%;
+  margin-top: auto;
   padding: 1rem;
   background-color: #1f2229;
   font-size: 0.9rem;
